@@ -149,6 +149,183 @@ $ node todo.js list
 Total: 1 tasks
 ```
 
+## Clean Code Principles Applied
+
+### 1. **Meaningful Names**
+
+- **Variables**: `STORAGE_FILE`, `taskNumber`, `totalTasks`
+- **Functions**: `createTask()`, `validateTaskNumber()`, `isValidTaskDescription()`
+- **Constants**: `STATUS.PENDING`, `COMMANDS.ADD`
+
+```javascript
+// ❌ Bad
+function ct(d) {
+  return { id: Date.now(), desc: d, stat: "p" };
+}
+
+// ✅ Good
+function createTask(description) {
+  return {
+    id: Date.now(),
+    description: description.trim(),
+    status: STATUS.PENDING,
+    createdAt: new Date().toISOString(),
+  };
+}
+```
+
+### 2. **Single Responsibility Principle**
+
+Each function has one clear responsibility:
+
+- `addTask()` - Only handles adding tasks
+- `listTasks()` - Only handles displaying tasks
+- `validateTaskNumber()` - Only validates task numbers
+- `readTasksFromFile()` - Only handles file reading
+
+### 3. **Small Functions**
+
+Functions are kept small and focused:
+
+- Most functions are under 20 lines
+- Each function does one thing well
+- Easy to understand and test
+
+### 4. **Error Handling**
+
+Comprehensive error handling with user-friendly messages:
+
+```javascript
+function validateTaskNumber(taskNumber, totalTasks) {
+  const number = parseInt(taskNumber);
+
+  if (isNaN(number) || number < 1 || number > totalTasks) {
+    console.error(
+      `Error: Invalid task number. Please use a number between 1 and ${totalTasks}`
+    );
+    return -1;
+  }
+
+  return number - 1;
+}
+```
+
+### 5. **Consistent Formatting**
+
+- Consistent indentation (2 spaces)
+- Consistent naming conventions (camelCase)
+- Logical code organization
+- Clear spacing between logical sections
+
+### 6. **Avoid Deep Nesting**
+
+- Early returns to reduce nesting
+- Guard clauses for validation
+- Clear conditional flow
+
+```javascript
+// ❌ Deeply nested
+function completeTask(taskNumber) {
+  const tasks = readTasksFromFile();
+  if (tasks.length > 0) {
+    const taskIndex = validateTaskNumber(taskNumber, tasks.length);
+    if (taskIndex !== -1) {
+      if (tasks[taskIndex].status !== STATUS.COMPLETED) {
+        // ... logic here
+      }
+    }
+  }
+}
+
+// ✅ Flat structure with early returns
+function completeTask(taskNumber) {
+  const tasks = readTasksFromFile();
+  const taskIndex = validateTaskNumber(taskNumber, tasks.length);
+
+  if (taskIndex === -1) {
+    return false;
+  }
+
+  if (tasks[taskIndex].status === STATUS.COMPLETED) {
+    console.log("⚠️  Task is already completed");
+    return false;
+  }
+
+  // ... continue with main logic
+}
+```
+
+### 7. **User Experience Improvements**
+
+- **Interactive Mode**: Continuous command input without restarting
+- **Input Parsing**: Handles quoted strings and flexible input formats
+- **Graceful Exit**: Multiple exit commands (exit, quit, q) and Ctrl+C handling
+- **Context Awareness**: Shows current tasks on startup
+
+```javascript
+// Smart input parsing for better UX
+function parseInput(input) {
+  const trimmed = input.trim();
+  if (!trimmed) return { command: "", args: [] };
+
+  // Handle quoted strings for task descriptions
+  const matches =
+    trimmed.match(/^(\w+)\s+"([^"]+)"$/) ||
+    trimmed.match(/^(\w+)\s+'([^']+)'$/);
+
+  if (matches) {
+    return { command: matches[1].toLowerCase(), args: [matches[2]] };
+  }
+
+  // Handle regular space-separated input
+  const parts = trimmed.split(/\s+/);
+  return { command: parts[0].toLowerCase(), args: parts.slice(1) };
+}
+```
+
+### 8. **Constants Over Magic Numbers/Strings**
+
+```javascript
+const STATUS = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+};
+
+const COMMANDS = {
+  ADD: "add",
+  LIST: "list",
+  COMPLETE: "complete",
+  REMOVE: "remove",
+};
+```
+
+### 9. **Pure Functions Where Possible**
+
+```javascript
+// Pure function - no side effects, same input always produces same output
+function createTask(description) {
+  return {
+    id: Date.now(),
+    description: description.trim(),
+    status: STATUS.PENDING,
+    createdAt: new Date().toISOString(),
+  };
+}
+```
+
+### 10. **Separation of Concerns**
+
+- File operations are separate from business logic
+- Validation is separate from execution
+- Command processing is separate from individual operations
+
+### 11. **Readable Code Structure**
+
+- Logical grouping of related functions
+- Clear function and variable names
+- Consistent code style
+- Comments only where necessary (self-documenting code)
+
 ## File Structure
 
 ```
